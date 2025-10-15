@@ -14,10 +14,20 @@ const { width } = Dimensions.get('window');
 
 const LoginSchema = Yup.object().shape({
   mobile: Yup.string()
-    .matches(/^\+92[0-9]{10}$/, 'Mobile number must start with +92 and be followed by 10 digits')
+    .test('demo-mobile', 'Mobile number must start with +92 and be followed by 10 digits', (val) => {
+      if (!val) return false;
+      // Allow demo value '123'
+      if (val === '123') return true;
+      return /^\+92[0-9]{10}$/.test(val);
+    })
     .required('Mobile number is required'),
   pin: Yup.string()
-    .matches(/^[0-9]{6,}$/, 'PIN must be at least 6 digits and numeric')
+    .test('demo-pin', 'PIN must be at least 6 digits and numeric', (val) => {
+      if (!val) return false;
+      // Allow demo value '123'
+      if (val === '123') return true;
+      return /^[0-9]{6,}$/.test(val);
+    })
     .required('PIN is required'),
 });
 

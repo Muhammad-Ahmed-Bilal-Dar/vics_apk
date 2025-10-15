@@ -43,7 +43,7 @@ export default function ProfileScreen() {
     },
     {
       id: 'history',
-      title: 'Inspection History',
+      title: 'Test History',
       icon: 'clock',
       onPress: () => {
         // Navigate to history screen

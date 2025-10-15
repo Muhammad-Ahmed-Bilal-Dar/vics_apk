@@ -25,10 +25,10 @@ const BUTTONS_URDU = [
   { label: 'فٹنس ویریفکیشن سرٹیفکیٹ', nav: '/screens/CertificationScreen', icon: require('../../assets/images/Vehicle_license_verification.png') },
 ];
 const BUTTONS_EN = [
-  { label: 'Get Appointment', nav: '/appointment', icon: require('../../assets/images/New_license.png') },
-  { label: 'Inspection History', nav: '/screens/history', icon: require('../../assets/images/inspection_history.png') },
+  { label: 'Book Testing Appointment', nav: '/appointment', icon: require('../../assets/images/New_license.png') },
+  { label: 'Test History', nav: '/screens/history', icon: require('../../assets/images/inspection_history.png') },
   { label: 'E-Certificate', nav: '/screens/MyCertificates', icon: require('../../assets/images/E_certification.png') },
-  { label: 'Fitness Verification Certificate', nav: '/screens/CertificationScreen', icon: require('../../assets/images/Vehicle_license_verification.png') },
+  { label: 'Certificate Verification', nav: '/screens/CertificationScreen', icon: require('../../assets/images/Vehicle_license_verification.png') },
 ];
 const screenWidth = Dimensions.get('window').width;
 const gridButtonWidth = (screenWidth - 40) / 2; // Reduce margin to allow larger buttons

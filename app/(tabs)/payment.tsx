@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Divider, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing } from '../theme/theme';
+import { calculateTestingFee, formatFee } from '../utils/feeCalculation';
 
 // Define types
 type VehicleInfo = {
@@ -13,6 +14,8 @@ type VehicleInfo = {
   year: string;
   color: string;
   plateNo: string;
+  engineCC?: string; // Engine capacity in CC
+  vehicleType?: string; // Vehicle type for diesel detection
 };
 
 type StationInfo = {
@@ -39,9 +42,9 @@ type PSIDData = {
 const mockPendingPSIDs: PSIDData[] = [
   { 
     psid: 'PU200821-88925518', 
-    vehicle: { make: 'Toyota', model: 'Corolla Altis', year: '2018', color: 'White', plateNo: 'ABC-123' },
+    vehicle: { make: 'Toyota', model: 'Corolla Altis', year: '2018', color: 'White', plateNo: 'ABC-123', engineCC: '1800' },
     station: { name: 'Central Inspection Center', location: 'Main Street, Riyadh', date: '2023-12-10', time: '10:30 AM', day: 'Monday' },
-    amount: 150.00,
+    amount: calculateTestingFee('1800'),
     status: 'pending',
     day: '20',
     month: 'AUG',
@@ -49,9 +52,9 @@ const mockPendingPSIDs: PSIDData[] = [
   },
   { 
     psid: 'PU200821-88925519', 
-    vehicle: { make: 'Honda', model: 'Civic', year: '2020', color: 'Black', plateNo: 'XYZ-789' },
+    vehicle: { make: 'Honda', model: 'Civic', year: '2020', color: 'Black', plateNo: 'XYZ-789', engineCC: '1000' },
     station: { name: 'North Inspection Point', location: 'North Avenue, Jeddah', date: '2023-12-12', time: '12:45 PM', day: 'Wednesday' },
-    amount: 150.00,
+    amount: calculateTestingFee('1000'),
     status: 'pending',
     day: '20',
     month: 'AUG',
@@ -59,9 +62,9 @@ const mockPendingPSIDs: PSIDData[] = [
   },
   { 
     psid: 'PU200821-88925520', 
-    vehicle: { make: 'Nissan', model: 'Altima', year: '2019', color: 'Silver', plateNo: 'DEF-456' },
+    vehicle: { make: 'Nissan', model: 'Altima', year: '2019', color: 'Silver', plateNo: 'DEF-456', engineCC: '800' },
     station: { name: 'East Station', location: 'East Road, Dammam', date: '2023-12-15', time: '2:15 PM', day: 'Friday' },
-    amount: 150.00,
+    amount: calculateTestingFee('800'),
     status: 'pending',
     day: '20',
     month: 'AUG',
@@ -69,9 +72,9 @@ const mockPendingPSIDs: PSIDData[] = [
   },
   { 
     psid: 'PU200821-88925521', 
-    vehicle: { make: 'Hyundai', model: 'Elantra', year: '2021', color: 'Blue', plateNo: 'GHI-789' },
+    vehicle: { make: 'Hyundai', model: 'Elantra', year: '2021', color: 'Blue', plateNo: 'GHI-789', engineCC: '1600' },
     station: { name: 'West Inspection Hub', location: 'West Street, Mecca', date: '2023-12-18', time: '9:00 AM', day: 'Sunday' },
-    amount: 150.00,
+    amount: calculateTestingFee('1600'),
     status: 'pending',
     day: '20',
     month: 'AUG',
@@ -79,9 +82,9 @@ const mockPendingPSIDs: PSIDData[] = [
   },
   { 
     psid: 'PU200821-88925522', 
-    vehicle: { make: 'Kia', model: 'Optima', year: '2020', color: 'Red', plateNo: 'JKL-012' },
+    vehicle: { make: 'Kia', model: 'Optima', year: '2020', color: 'Red', plateNo: 'JKL-012', engineCC: '2000', vehicleType: 'diesel' },
     station: { name: 'South Inspection Center', location: 'South Boulevard, Medina', date: '2023-12-20', time: '3:30 PM', day: 'Tuesday' },
-    amount: 150.00,
+    amount: calculateTestingFee('2000', 'diesel'),
     status: 'pending',
     day: '20',
     month: 'AUG',
@@ -92,9 +95,9 @@ const mockPendingPSIDs: PSIDData[] = [
 const mockPaidPSIDs: PSIDData[] = [
   { 
     psid: 'PU200821-88925523', 
-    vehicle: { make: 'BMW', model: '3 Series', year: '2019', color: 'Black', plateNo: 'MNO-345' },
+    vehicle: { make: 'BMW', model: '3 Series', year: '2019', color: 'Black', plateNo: 'MNO-345', engineCC: '2000' },
     station: { name: 'Premium Inspection Center', location: 'Luxury Avenue, Riyadh', date: '2023-11-25', time: '11:00 AM', day: 'Saturday' },
-    amount: 150.00,
+    amount: calculateTestingFee('2000'),
     status: 'paid',
     paymentDate: '2023-11-25',
     day: '20',
@@ -103,9 +106,9 @@ const mockPaidPSIDs: PSIDData[] = [
   },
   { 
     psid: 'PU200821-88925524', 
-    vehicle: { make: 'Mercedes', model: 'C-Class', year: '2020', color: 'Silver', plateNo: 'PQR-678' },
+    vehicle: { make: 'Mercedes', model: 'C-Class', year: '2020', color: 'Silver', plateNo: 'PQR-678', engineCC: '1800' },
     station: { name: 'Elite Inspection Point', location: 'High Street, Jeddah', date: '2023-11-20', time: '1:15 PM', day: 'Thursday' },
-    amount: 150.00,
+    amount: calculateTestingFee('1800'),
     status: 'paid',
     paymentDate: '2023-11-20',
     day: '20',
@@ -114,9 +117,9 @@ const mockPaidPSIDs: PSIDData[] = [
   },
   { 
     psid: 'PU200821-88925525', 
-    vehicle: { make: 'Audi', model: 'A4', year: '2018', color: 'White', plateNo: 'STU-901' },
+    vehicle: { make: 'Audi', model: 'A4', year: '2018', color: 'White', plateNo: 'STU-901', engineCC: '1600' },
     station: { name: 'Premium Center', location: 'Main Road, Dammam', date: '2023-11-15', time: '10:45 AM', day: 'Monday' },
-    amount: 150.00,
+    amount: calculateTestingFee('1600'),
     status: 'paid',
     paymentDate: '2023-11-15',
     day: '20',
@@ -136,7 +139,11 @@ export default function PaymentScreen() {
     // Find the PSID data
     const item = pendingItems.find(item => item.psid === psid);
     if (item) {
-      (navigation as any).navigate('screens/epay', { psid: item.psid, amount: item.amount });
+      (navigation as any).navigate('screens/epay', { 
+        psid: item.psid, 
+        amount: item.amount,
+        vehicleInfo: item.vehicle 
+      });
     }
   };
 
@@ -224,6 +231,11 @@ export default function PaymentScreen() {
                     <Text variant="bodyMedium" style={styles.infoValue}>
                       {item.vehicle.year} {item.vehicle.color} {item.vehicle.make} {item.vehicle.model}
                     </Text>
+                    {item.vehicle.engineCC && (
+                      <Text variant="bodyMedium" style={styles.infoValue}>
+                        Engine: {item.vehicle.engineCC} cc • Fee: {formatFee(item.amount)}
+                      </Text>
+                    )}
                   </View>
                 </View>
                 <View style={styles.infoRow}>

@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "vicsmobile",
     "userInterfaceStyle": "automatic",
-  "newArchEnabled": false,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
@@ -17,7 +17,11 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.ahmed_dar1.VICSMobile"
+      "package": "com.ahmeddar1.vicsmobile",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -45,8 +49,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "23255918-0b3b-4d25-b8ac-e20e02e64f8e"
+        "projectId": "616fff56-34da-430c-ab38-df37a470befd"
       }
-    }
+    },
+    "owner": "kalidar"
   }
 }

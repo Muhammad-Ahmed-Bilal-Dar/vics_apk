@@ -104,7 +104,7 @@ const translations = {
     ur: 'وینڈر بنیں',
   },
   appointment: {
-    en: 'Book Inspection',
+    en: 'Book Emission Testing',
     ur: 'انسپیکشن بُک کریں',
   },
   infoCardTitle: {
@@ -700,7 +700,7 @@ export default function Index() {
   const landingButtons = [
     {
       key: 'verification',
-      label: isUrdu ? 'فٹنس ویریفکیشن سرٹیفکیٹ' : 'Fitness Verification Certificate',
+      label: isUrdu ? 'فٹنس ویریفکیشن سرٹیفکیٹ' : 'Certificate Verification',
       onPress: () => router.push('/screens/CertificationScreen' as any),
       icon: require('../assets/images/Vehicle_license_verification.png'),
     },
@@ -709,7 +709,7 @@ export default function Index() {
       label: isUrdu ? 'سروس فراہم کنندہ بنیں' : 'Become a Service Provider',
       // 
       onPress: () => {
-        Linking.openURL('https://lawmis.punjab.gov.pk/lawmis');
+        Linking.openURL('https://lawmis.punjab.gov.pk/');
       },
       icon: require('../assets/images/New_license.png'),
     },

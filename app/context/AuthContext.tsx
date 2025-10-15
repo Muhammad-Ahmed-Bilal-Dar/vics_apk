@@ -59,25 +59,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signIn = async (mobile: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      // Call the real API
-      const response = await fetch('http://13.215.173.212:8081/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: mobile,
-          pin: password,
-        }),
-      });
-      if (!response.ok) {
-        return false;
-      }
-      const data = await response.json();
-      // You may need to adjust this based on the actual API response structure
-      if (data && data.user) {
-        await AsyncStorage.setItem('user', JSON.stringify(data.user));
-        setUser(data.user);
+      // TEMP: Mock login (no network). Accept only mobile '123' and pin '123'.
+      // Original API request kept for reference:
+      // const response = await fetch('http://13.215.173.212:8081/api/users/login', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ phone: mobile, pin: password }),
+      // });
+      // if (!response.ok) return false;
+      // const data = await response.json();
+      // if (data && data.user) { await AsyncStorage.setItem('user', JSON.stringify(data.user)); setUser(data.user); return true; }
+      // Normalize mobile: allow either '0333...' or '+92XXXXXXXXXX'
+      const normalizeMobile = (m: string) => {
+        const trimmed = (m || '').replace(/\s+/g, '');
+        if (trimmed.startsWith('+92')) return trimmed;
+        if (/^0\d{10}$/.test(trimmed)) return `+92${trimmed.slice(1)}`;
+        return trimmed;
+      };
+      const normalized = normalizeMobile(mobile);
+
+      // Demo credentials
+      const demoMobile = '+923334852047';
+      const demoPin = '123';
+
+      if (normalized === demoMobile && password === demoPin) {
+        const mockUser: User = {
+          id: 'demo-123',
+          name: 'Demo User',
+          mobile: demoMobile,
+          email: 'demo@example.com',
+          phone: demoMobile,
+          address: 'Demo Street 1',
+          city: 'Lahore',
+        };
+        await AsyncStorage.setItem('user', JSON.stringify(mockUser));
+        setUser(mockUser);
         return true;
       }
       return false;

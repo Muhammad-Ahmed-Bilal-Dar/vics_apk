@@ -5,6 +5,7 @@ import { Alert, Animated, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pla
 import { Button, Card, Divider, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing } from '../theme/theme';
+import { calculateTestingFee, formatFee } from '../utils/feeCalculation';
 
 // Define the history item type
 interface HistoryItem {
@@ -15,6 +16,7 @@ interface HistoryItem {
   price: string;
   inspector: string;
   vehicle: string;
+  vehicleCC?: string; // Engine capacity in CC
   reportUrl?: string; // URL to the report document
 }
 
@@ -75,6 +77,9 @@ const generateDummyData = (): HistoryItem[] => {
   const data: HistoryItem[] = [];
   const statuses: Array<HistoryItem['status']> = ['Passed', 'Failed', 'Pending', 'Retry', 'Cancelled'];
   
+  // Engine CC options for different vehicle types
+  const engineCCs = ['800', '1000', '1200', '1300', '1500', '1600', '1800', '2000', '2400'];
+  
   const startDate = new Date(2023, 0, 1); // Jan 1, 2023
   const endDate = new Date(); // current date
   
@@ -83,7 +88,17 @@ const generateDummyData = (): HistoryItem[] => {
     const date = randomDateVal.toISOString().split('T')[0]; // YYYY-MM-DD format
     
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const price = status === 'Cancelled' ? 'PKR 0' : `PKR ${Math.floor(Math.random() * 3000) + 2000}`;
+    const vehicleCC = engineCCs[Math.floor(Math.random() * engineCCs.length)];
+    
+    // Calculate proper fee based on CC
+    let price: string;
+    if (status === 'Cancelled') {
+      price = 'PKR 0';
+    } else {
+      const calculatedFee = calculateTestingFee(vehicleCC);
+      price = formatFee(calculatedFee);
+    }
+    
     const inspector = status === 'Cancelled' ? 'N/A' : inspectorNames[Math.floor(Math.random() * inspectorNames.length)];
     
     // Reports are available for completed inspections
@@ -97,6 +112,7 @@ const generateDummyData = (): HistoryItem[] => {
       price,
       inspector,
       vehicle: vehicles[Math.floor(Math.random() * vehicles.length)],
+      vehicleCC,
       reportUrl: hasReport ? `https://example.com/reports/${i}` : undefined
     });
   }
@@ -276,6 +292,9 @@ export default function HistoryScreen() {
             >
               <View style={styles.headerLeft}>
                 <Text style={styles.vehicleTitle}>{item.vehicle}</Text>
+                {item.vehicleCC && (
+                  <Text style={styles.vehicleSubtitle}>{item.vehicleCC} cc Engine</Text>
+                )}
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
                     <Ionicons name="calendar" size={14} color={Colors.light.text.tertiary} />
@@ -314,6 +333,18 @@ export default function HistoryScreen() {
                       <Text style={styles.detailValue}>{item.inspector}</Text>
                     </View>
                   </View>
+
+                  {item.vehicleCC && (
+                    <View style={styles.detailRow}>
+                      <View style={styles.detailIconContainer}>
+                        <MaterialCommunityIcons name="engine" size={20} color={Colors.primary.main} />
+                      </View>
+                      <View style={styles.detailTextContainer}>
+                        <Text style={styles.detailLabel}>Engine CC</Text>
+                        <Text style={styles.detailValue}>{item.vehicleCC} cc</Text>
+                      </View>
+                    </View>
+                  )}
 
                   <View style={styles.detailRow}>
                     <View style={styles.detailIconContainer}>
@@ -374,7 +405,7 @@ export default function HistoryScreen() {
         end={{x: 1, y: 0}}
         style={styles.headerGradient}
       >
-        <Text style={styles.headerTitle}>Inspection History</Text>
+        <Text style={styles.headerTitle}>Test History</Text>
       </LinearGradient>
       {
         // Filter chips with scroll hint bar and edge arrows
@@ -666,6 +697,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.common.black,
     marginBottom: 6,
+  },
+  vehicleSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.light.text.tertiary,
+    marginBottom: 4,
   },
   metaRow: {
     flexDirection: 'row',

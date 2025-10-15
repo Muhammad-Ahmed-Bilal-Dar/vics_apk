@@ -25,6 +25,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Yup from 'yup';
 import vicsData from '../../dataset/vics_dataset.json';
 import { Colors, Spacing } from '../theme/theme';
+import { calculateTestingFee, formatFee, getFeeCategory } from '../utils/feeCalculation';
 
 
 
@@ -84,6 +85,7 @@ export default function AppointmentScreen() {
   const [vehicleFound, setVehicleFound] = useState(false);
   const [vehicleData, setVehicleData] = useState<any>(null);
   const [psidNumber, setPsidNumber] = useState('');
+  const [submittedRegistrationNumber, setSubmittedRegistrationNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [calendarVisible, setCalendarVisible] = useState(false);
@@ -367,6 +369,10 @@ export default function AppointmentScreen() {
         v => v.vehicle_registration_number.toUpperCase() === regNum
       );
       if (found) {
+        // Calculate fee based on vehicle CC
+        const testingFee = calculateTestingFee(found.vehicle_CC);
+        const feeCategory = getFeeCategory(found.vehicle_CC);
+        
         // Map JSON fields to UI fields
         setVehicleData({
           vehicleName: found.vehicle_name,
@@ -378,6 +384,10 @@ export default function AppointmentScreen() {
           chassisNumber: found.chassis,
           registration: found.registration,
           status: '', // Not available in JSON
+          vehicleCC: found.vehicle_CC,
+          testingFee: testingFee,
+          formattedFee: formatFee(testingFee),
+          feeCategory: feeCategory,
         });
         setVehicleFound(true);
       } else {
@@ -399,6 +409,9 @@ export default function AppointmentScreen() {
     try {
       console.log('Setting loading state...');
       setLoading(true);
+      
+      // Store the registration number for later use
+      setSubmittedRegistrationNumber(values.registrationNumber);
       
       // Generate PSID for the appointment
       console.log('Generating PSID...');
@@ -487,27 +500,16 @@ export default function AppointmentScreen() {
                 Appointment Booked!
               </Text>
               
-              <View style={styles.psidContainer}>
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity onPress={togglePSIDAudio} style={styles.audioButton}>
-                    <Ionicons 
-                      name={isPSIDPlaying ? 'stop' : 'volume-high'} 
-                      size={24} 
-                      color={Colors.primary.main} 
-                    />
-                  </TouchableOpacity>
-                <Text style={styles.psidLabel}>
-                  Your PSID Number:
+              {/* Bilingual Message - English and Urdu Parallel */}
+              <View style={styles.messageContainer}>
+                <Text style={styles.successMessage}>
+                  Your appointment is booked now. Pre pay now to proceed via ePay
                 </Text>
-                </View>
-                <Text style={styles.psidNumber}>
-                  {psidNumber}
+                <Text style={[styles.successMessage, styles.urduMessage]}>
+                  آپ کی اپوائنٹمنٹ بک ہو گئی ہے۔ اب ePay کے ذریعے آگے بڑھنے کے لیے پہلے سے ادائیگی کریں
                 </Text>
               </View>
               
-              <Text style={styles.successSubtext}>
-                Please keep this number for your reference. You'll need it at the inspection center.
-              </Text>
               {/* Pay Now / Pay Later buttons */}
               <View style={styles.payButtonsRow}>
                 <Button
@@ -515,7 +517,21 @@ export default function AppointmentScreen() {
                   style={styles.payNowButton}
                   buttonColor={Colors.button.default}
                   labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                  onPress={() => router.push({ pathname: '/screens/epay', params: { psid: psidNumber, amount: 150 } })}
+                  onPress={() => router.push({ 
+                    pathname: '/screens/epay', 
+                    params: { 
+                      psid: psidNumber, 
+                      amount: vehicleData?.testingFee || 800,
+                      vehicleInfo: JSON.stringify({
+                        make: vehicleData?.vehicleName?.split(' ')[0] || '',
+                        model: vehicleData?.vehicleName?.split(' ').slice(1).join(' ') || '',
+                        year: vehicleData?.year || '',
+                        color: vehicleData?.color || '',
+                        plateNo: submittedRegistrationNumber || '',
+                        engineCC: vehicleData?.vehicleCC || ''
+                      })
+                    } 
+                  })}
                 >
                   Pay Now
                 </Button> 
@@ -790,6 +806,32 @@ export default function AppointmentScreen() {
                                       <Text style={styles.vehicleDetailLabel}>Chassis #</Text>
                                     </View>
                                     <Text style={styles.vehicleDetailValue}>{vehicleData.chassisNumber.slice(-6)}</Text>
+                                  </View>
+
+                                  <View style={styles.vehicleDetailItem}>
+                                    <View style={styles.detailLabelContainer}>
+                                      <Ionicons name="speedometer-outline" size={16} color={Colors.text.tertiary} style={styles.detailIcon} />
+                                      <Text style={styles.vehicleDetailLabel}>Engine CC</Text>
+                                    </View>
+                                    <Text style={styles.vehicleDetailValue}>{vehicleData.vehicleCC} cc</Text>
+                                  </View>
+                                </View>
+
+                                <View style={styles.vehicleDetailRow}>
+                                  <View style={styles.vehicleDetailItem}>
+                                    <View style={styles.detailLabelContainer}>
+                                      <Ionicons name="cash-outline" size={16} color={Colors.text.tertiary} style={styles.detailIcon} />
+                                      <Text style={styles.vehicleDetailLabel}>Testing Fee</Text>
+                                    </View>
+                                    <Text style={[styles.vehicleDetailValue, {color: Colors.primary.main, fontWeight: 'bold'}]}>{vehicleData.formattedFee}</Text>
+                                  </View>
+
+                                  <View style={styles.vehicleDetailItem}>
+                                    <View style={styles.detailLabelContainer}>
+                                      <Ionicons name="information-circle-outline" size={16} color={Colors.text.tertiary} style={styles.detailIcon} />
+                                      <Text style={styles.vehicleDetailLabel}>Fee Category</Text>
+                                    </View>
+                                    <Text style={styles.vehicleDetailValue}>{vehicleData.feeCategory}</Text>
                                   </View>
                                 </View>
                               </View>
@@ -1157,6 +1199,14 @@ export default function AppointmentScreen() {
                             <View style={styles.summaryItem}>
                               <Text style={styles.summaryLabel}>Owner:</Text>
                               <Text style={styles.summaryValue}>{vehicleData.owner}</Text>
+                            </View>
+                            <View style={styles.summaryItem}>
+                              <Text style={styles.summaryLabel}>Engine CC:</Text>
+                              <Text style={styles.summaryValue}>{vehicleData.vehicleCC} cc</Text>
+                            </View>
+                            <View style={styles.summaryItem}>
+                              <Text style={styles.summaryLabel}>Testing Fee:</Text>
+                              <Text style={[styles.summaryValue, {color: Colors.primary.main, fontWeight: 'bold'}]}>{vehicleData.formattedFee}</Text>
                             </View>
                           </View>
                           
@@ -2225,5 +2275,54 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.button.default,
     backgroundColor: '#fff',
+  },
+  languageToggle: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginTop: 8,
+    alignSelf: 'center',
+  },
+  languageToggleText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary.main,
+  },
+  messageContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 15,
+    marginTop: 20,
+    marginHorizontal: 12,
+    borderLeftWidth: 6,
+    borderLeftColor: Colors.primary.main,
+    borderRightWidth: 6,
+    borderRightColor: Colors.primary.main,
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
+    borderTopColor: Colors.primary.main,
+    borderBottomColor: Colors.primary.main,
+  },
+  successMessage: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.primary.main,
+    textAlign: 'center',
+    lineHeight: 22,
+    letterSpacing: 0.5,
+  },
+  urduMessage: {
+    fontSize: 15,
+    marginTop: 12,
+    fontWeight: '600',
+    color: Colors.primary.main,
+    textAlign: 'center',
+    letterSpacing: 0.3,
   },
 }); 

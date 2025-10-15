@@ -1,0 +1,30 @@
+{
+  "cli": {
+    "version": ">= 14.0.0"
+  },
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk"
+      },
+      "developmentClient": false,
+      "autoIncrement": true
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "developmentClient": false,
+      "autoIncrement": true
+    },
+    "development": {
+      "developmentClient": true,
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

@@ -406,7 +406,7 @@ export default function CertificationScreen() {
         end={{x: 1, y: 0}}
         style={styles.headerGradient}
       >
-        <Text style={styles.headerTitle}>Fitness Verification</Text>
+        <Text style={styles.headerTitle}>Certificate Verification</Text>
       </LinearGradient>
       <StatusBar style="auto" />
       <ScrollView 
@@ -414,7 +414,7 @@ export default function CertificationScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <Surface style={styles.verificationContainer}>
-          <Text style={styles.verificationTitle}>Vehicle Fitness Verification</Text>
+          <Text style={styles.verificationTitle}>Vehicle Certificate Verification</Text>
           <View style={styles.searchContainer}>
             <Text style={styles.inputLabel}>Enter vehicle registration number</Text>
             <TextInput
